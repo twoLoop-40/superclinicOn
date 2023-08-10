@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 유저 테이블
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      Role     @default(STUDENT)
+  student   Student?
+  teacher   Teacher?
+}
+
+// Role enum 타입 'TEACHER' | 'STUDENT' | 'ADMIN'
+enum Role {
+  TEACHER
+  STUDENT
+  ADMIN
+}
+
+// student 테이블
+model Student {
+  id          Int          @id @default(autoincrement())
+  userId      Int          @unique
+  user        User         @relation(fields: [userId], references: [id])
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
+  teacherId   Int?
+  mataCode    Int?         @unique
+  Worksheets  Worksheet[]
+  missions    Mission[]
+  evaluations Evaluation[]
+}
+
+// teacher 테이블
+model Teacher {
+  id      Int       @id @default(autoincrement())
+  userId  Int       @unique
+  user    User      @relation(fields: [userId], references: [id])
+  admin   Admin?
+  student Student[]
+}
+
+// admin 테이블
+model Admin {
+  id        Int     @id @default(autoincrement())
+  teacherId Int     @unique
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+}
+
+// student가 본 Worksheets 테이블
+model Worksheet {
+  id             Int              @id @default(autoincrement())
+  WorksheetCode  Int
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  student        Student          @relation(fields: [studentId], references: [id])
+  studentId      Int
+  mission        Mission?         @relation(fields: [missionId], references: [id])
+  missionId      Int
+  type           WorksheetType    @default(HOMEWORK)
+  status         WorksheetStatus  @default(PENDING)
+  score          Int?
+  WorksheetTrack WorksheetTrack[]
+}
+
+// Worksheet 종류 테이블
+enum WorksheetType {
+  HOMEWORK
+  CLASSWORK
+}
+
+enum WorksheetStatus {
+  PENDING // 제출 전
+  SUBMITTED // 제출됨
+  GRADED // 채점 완료
+}
+
+// 학습목표 테이블
+model Mission {
+  id          Int           @id @default(autoincrement())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  student     Student       @relation(fields: [studentId], references: [id])
+  studentId   Int
+  description String
+  status      MissionStatus
+  startDate   DateTime
+  endDate     DateTime
+  worksheet   Worksheet[]
+}
+
+// 학습목표 상태 테이블
+enum MissionStatus {
+  NOT_STARTED
+  ONGOING
+  COMPLETED
+  FAILED
+  ABANDONED
+}
+
+// 학생 평가 테이블
+model Evaluation {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  comments  String
+}
+
+// series 테이블
+model Series {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  title       String
+  seriesCode  Int      @unique
+  description String?
+  mataId      String?
+
+  chapter Chapter[]
+}
+
+// 각 series에 속한 단원명 테이블
+model Chapter {
+  id        Int      @id @default(autoincrement())
+  seriesId  Int
+  series    Series   @relation(fields: [seriesId], references: [id])
+  setName   String
+  setCode   Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Track     Track[]
+}
+
+// 각 단원에 속한 문제 트랙 테이블
+model Track {
+  id             Int              @id @default(autoincrement())
+  trackCode      Int              @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  chapter        Chapter          @relation(fields: [chapterId], references: [id])
+  chapterId      Int
+  WorksheetTrack WorksheetTrack[]
+}
+
+// worksheet 과  track 의 다대다 관계
+model WorksheetTrack {
+  worksheetId Int
+  trackId     Int
+  worksheet   Worksheet @relation(fields: [worksheetId], references: [id])
+  track       Track     @relation(fields: [trackId], references: [id])
+
+  @@id([worksheetId, trackId])
+}
