@@ -32,24 +32,90 @@ enum Role {
 
 // student 테이블
 model Student {
-  id          Int          @id @default(autoincrement())
-  userId      Int          @unique
-  user        User         @relation(fields: [userId], references: [id])
-  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
-  teacherId   Int?
-  mataCode    Int?         @unique
-  Worksheets  Worksheet[]
-  missions    Mission[]
-  evaluations Evaluation[]
+  id            Int            @id @default(autoincrement())
+  userId        Int            @unique
+  user          User           @relation(fields: [userId], references: [id])
+  teacher       Teacher?       @relation(fields: [teacherId], references: [id])
+  teacherId     Int?
+  mataCode      Int?           @unique
+  worksheets    Worksheet[]
+  missions      Mission[]
+  evaluations   Evaluation[]
+  onLineLesson  OnLineLesson[]
+  offLineLesson OffLineLesson?
+}
+
+// onLineLesson 테이블 (온라인 수업)
+// 기한, 수업상태
+model OnLineLesson {
+  id        Int                @id @default(autoincrement())
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  student   Student            @relation(fields: [studentId], references: [id])
+  studentId Int
+  status    OnLineLessonStatus @default(COMPLETED)
+  startDate DateTime
+  endDate   DateTime
+}
+
+// 온라인 수업 상태 테이블
+// 진행중, 완료
+enum OnLineLessonStatus {
+  ONGOING
+  COMPLETED
+}
+
+// offLineLesson 테이블 (오프라인 수업)
+// 수업 진행한 날짜들, 남은 수업횟수, 처음 시작할 때 정한 횟수
+// 수업 요일, 수업 시간
+model OffLineLesson {
+  id         Int          @id @default(autoincrement())
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  student    Student      @relation(fields: [studentId], references: [id])
+  studentId  Int          @unique
+  count      Int          @default(0)
+  total      Int          @default(0)
+  lessonDate LessonDate[]
+  lessonDay  LessonDay[]
+}
+
+model LessonDate {
+  id              Int           @id @default(autoincrement())
+  date            DateTime
+  isPresent       Boolean
+  offLineLessonId Int
+  offLineLesson   OffLineLesson @relation(fields: [offLineLessonId], references: [id])
+}
+
+// 수업 요일 테이블 (오프라인 수업)
+model LessonDay {
+  id              Int           @id @default(autoincrement())
+  day             Day
+  timeStart       DateTime
+  timeEnd         DateTime
+  offLineLesson   OffLineLesson @relation(fields: [offLineLessonId], references: [id])
+  offLineLessonId Int
+}
+
+// 수업 요일 enum
+enum Day {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
 }
 
 // teacher 테이블
 model Teacher {
-  id      Int       @id @default(autoincrement())
-  userId  Int       @unique
-  user    User      @relation(fields: [userId], references: [id])
-  admin   Admin?
-  student Student[]
+  id       Int       @id @default(autoincrement())
+  userId   Int       @unique
+  user     User      @relation(fields: [userId], references: [id])
+  admin    Admin?
+  students Student[]
 }
 
 // admin 테이블
@@ -147,13 +213,13 @@ model Chapter {
 
 // 각 단원에 속한 문제 트랙 테이블
 model Track {
-  id             Int              @id @default(autoincrement())
-  trackCode      Int              @unique
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  chapter        Chapter          @relation(fields: [chapterId], references: [id])
-  chapterId      Int
-  WorksheetTrack WorksheetTrack[]
+  id              Int              @id @default(autoincrement())
+  trackCode       Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  chapter         Chapter          @relation(fields: [chapterId], references: [id])
+  chapterId       Int
+  worksheetTracks WorksheetTrack[]
 }
 
 // worksheet 과  track 의 다대다 관계
