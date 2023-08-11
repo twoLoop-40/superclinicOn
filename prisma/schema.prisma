@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // 유저 테이블
@@ -43,6 +44,9 @@ model Student {
   evaluations   Evaluation[]
   onLineLesson  OnLineLesson[]
   offLineLesson OffLineLesson?
+
+  @@index([userId])
+  @@index([teacherId])
 }
 
 // onLineLesson 테이블 (온라인 수업)
@@ -56,6 +60,8 @@ model OnLineLesson {
   status    OnLineLessonStatus @default(COMPLETED)
   startDate DateTime
   endDate   DateTime
+
+  @@index([studentId])
 }
 
 // 온라인 수업 상태 테이블
@@ -78,6 +84,8 @@ model OffLineLesson {
   total      Int          @default(0)
   lessonDate LessonDate[]
   lessonDay  LessonDay[]
+
+  @@index([studentId])
 }
 
 model LessonDate {
@@ -86,6 +94,8 @@ model LessonDate {
   isPresent       Boolean
   offLineLessonId Int
   offLineLesson   OffLineLesson @relation(fields: [offLineLessonId], references: [id])
+
+  @@index([offLineLessonId])
 }
 
 // 수업 요일 테이블 (오프라인 수업)
@@ -96,6 +106,8 @@ model LessonDay {
   timeEnd         DateTime
   offLineLesson   OffLineLesson @relation(fields: [offLineLessonId], references: [id])
   offLineLessonId Int
+
+  @@index([offLineLessonId])
 }
 
 // 수업 요일 enum
@@ -116,6 +128,8 @@ model Teacher {
   user     User      @relation(fields: [userId], references: [id])
   admin    Admin?
   students Student[]
+
+  @@index([userId])
 }
 
 // admin 테이블
@@ -123,6 +137,8 @@ model Admin {
   id        Int     @id @default(autoincrement())
   teacherId Int     @unique
   teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+  @@index([teacherId])
 }
 
 // student가 본 Worksheets 테이블
@@ -139,6 +155,9 @@ model Worksheet {
   status         WorksheetStatus  @default(PENDING)
   score          Int?
   WorksheetTrack WorksheetTrack[]
+
+  @@index([studentId])
+  @@index([missionId])
 }
 
 // Worksheet 종류 테이블
@@ -165,6 +184,8 @@ model Mission {
   startDate   DateTime
   endDate     DateTime
   worksheet   Worksheet[]
+
+  @@index([studentId])
 }
 
 // 학습목표 상태 테이블
@@ -184,6 +205,8 @@ model Evaluation {
   student   Student  @relation(fields: [studentId], references: [id])
   studentId Int
   comments  String
+
+  @@index([studentId])
 }
 
 // series 테이블
@@ -209,6 +232,8 @@ model Chapter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Track     Track[]
+
+  @@index([seriesId])
 }
 
 // 각 단원에 속한 문제 트랙 테이블
@@ -220,6 +245,8 @@ model Track {
   chapter         Chapter          @relation(fields: [chapterId], references: [id])
   chapterId       Int
   worksheetTracks WorksheetTrack[]
+
+  @@index([chapterId])
 }
 
 // worksheet 과  track 의 다대다 관계
@@ -230,4 +257,6 @@ model WorksheetTrack {
   track       Track     @relation(fields: [trackId], references: [id])
 
   @@id([worksheetId, trackId])
+  @@index([worksheetId])
+  @@index([trackId])
 }
