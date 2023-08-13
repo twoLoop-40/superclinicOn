@@ -22,13 +22,14 @@ model User {
   role      Role     @default(STUDENT)
   student   Student?
   teacher   Teacher?
+  manager   Manager?
 }
 
 // Role enum 타입 'TEACHER' | 'STUDENT' | 'ADMIN'
 enum Role {
   TEACHER
   STUDENT
-  ADMIN
+  MANAGER
 }
 
 // student 테이블
@@ -42,7 +43,7 @@ model Student {
   worksheets    Worksheet[]
   missions      Mission[]
   evaluations   Evaluation[]
-  onLineLesson  OnLineLesson[]
+  onLineLessons OnLineLesson[]
   offLineLesson OffLineLesson?
 
   @@index([userId])
@@ -52,16 +53,42 @@ model Student {
 // onLineLesson 테이블 (온라인 수업)
 // 기한, 수업상태
 model OnLineLesson {
-  id        Int                @id @default(autoincrement())
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  student   Student            @relation(fields: [studentId], references: [id])
-  studentId Int
-  status    OnLineLessonStatus @default(COMPLETED)
-  startDate DateTime
-  endDate   DateTime
+  id                     Int                      @id @default(autoincrement())
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  student                Student                  @relation(fields: [studentId], references: [id])
+  studentId              Int
+  status                 OnLineLessonStatus       @default(COMPLETED)
+  count                  Int                      @default(0)
+  total                  Int                      @default(0)
+  startDate              DateTime
+  endDate                DateTime
+  OnLineLessonUploadDate OnLineLessonUploadDate[]
+  OnLineLessonUploadDay  OnLineLessonUploadDay[]
 
   @@index([studentId])
+}
+
+// onLineLesson 미션 업데이트 하는 날짜 테이블
+model OnLineLessonUploadDate {
+  id             Int          @id @default(autoincrement())
+  date           DateTime
+  onLineLessonId Int
+  onLineLesson   OnLineLesson @relation(fields: [onLineLessonId], references: [id])
+
+  @@index([onLineLessonId])
+}
+
+// onLineLesson 미션 업데이트 하는 요일 테이블
+model OnLineLessonUploadDay {
+  id             Int          @id @default(autoincrement())
+  day            Day
+  timeStart      DateTime
+  timeEnd        DateTime
+  onLineLesson   OnLineLesson @relation(fields: [onLineLessonId], references: [id])
+  onLineLessonId Int
+
+  @@index([onLineLessonId])
 }
 
 // 온라인 수업 상태 테이블
@@ -82,8 +109,8 @@ model OffLineLesson {
   studentId  Int          @unique
   count      Int          @default(0)
   total      Int          @default(0)
-  lessonDate LessonDate[]
   lessonDay  LessonDay[]
+  LessonDate LessonDate[]
 
   @@index([studentId])
 }
@@ -123,38 +150,41 @@ enum Day {
 
 // teacher 테이블
 model Teacher {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id])
+  students  Student[]
+  managerId Int?
+  manager   Manager?  @relation(fields: [managerId], references: [id])
+
+  @@index([userId])
+  @@index([managerId])
+}
+
+// Manager 테이블 전체를 관리하는 관리자
+model Manager {
   id       Int       @id @default(autoincrement())
   userId   Int       @unique
   user     User      @relation(fields: [userId], references: [id])
-  admin    Admin?
-  students Student[]
+  teachers Teacher[]
 
   @@index([userId])
 }
 
-// admin 테이블
-model Admin {
-  id        Int     @id @default(autoincrement())
-  teacherId Int     @unique
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
-
-  @@index([teacherId])
-}
-
 // student가 본 Worksheets 테이블
 model Worksheet {
-  id             Int              @id @default(autoincrement())
-  WorksheetCode  Int
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  student        Student          @relation(fields: [studentId], references: [id])
-  studentId      Int
-  mission        Mission?         @relation(fields: [missionId], references: [id])
-  missionId      Int
-  type           WorksheetType    @default(HOMEWORK)
-  status         WorksheetStatus  @default(PENDING)
-  score          Int?
-  WorksheetTrack WorksheetTrack[]
+  id              Int              @id @default(autoincrement())
+  WorksheetCode   Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  student         Student          @relation(fields: [studentId], references: [id])
+  studentId       Int
+  mission         Mission?         @relation(fields: [missionId], references: [id])
+  missionId       Int
+  type            WorksheetType    @default(HOMEWORK)
+  status          WorksheetStatus  @default(PENDING)
+  score           Int?
+  WorksheetTracks WorksheetTrack[]
 
   @@index([studentId])
   @@index([missionId])
@@ -183,7 +213,7 @@ model Mission {
   status      MissionStatus
   startDate   DateTime
   endDate     DateTime
-  worksheet   Worksheet[]
+  worksheets  Worksheet[]
 
   @@index([studentId])
 }
@@ -204,7 +234,7 @@ model Evaluation {
   updatedAt DateTime @updatedAt
   student   Student  @relation(fields: [studentId], references: [id])
   studentId Int
-  comments  String
+  comment   String
 
   @@index([studentId])
 }
@@ -219,7 +249,7 @@ model Series {
   description String?
   mataId      String?
 
-  chapter Chapter[]
+  chapters Chapter[]
 }
 
 // 각 series에 속한 단원명 테이블
