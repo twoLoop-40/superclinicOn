@@ -16,13 +16,27 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  name      String
+  username  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   role      Role     @default(STUDENT)
+  active    Boolean  @default(false)
   student   Student?
   teacher   Teacher?
   manager   Manager?
+  Token     Token[]
+}
+
+// email 확인을 위한 토큰
+model Token {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@index([userId])
 }
 
 // Role enum 타입 'TEACHER' | 'STUDENT' | 'ADMIN'
@@ -45,6 +59,7 @@ model Student {
   evaluations   Evaluation[]
   onLineLessons OnLineLesson[]
   offLineLesson OffLineLesson?
+  studentClass  StudentClass[]
 
   @@index([userId])
   @@index([teacherId])
@@ -133,8 +148,11 @@ model LessonDay {
   timeEnd         DateTime
   offLineLesson   OffLineLesson @relation(fields: [offLineLessonId], references: [id])
   offLineLessonId Int
+  class           Class?        @relation(fields: [classId], references: [id])
+  classId         Int?
 
   @@index([offLineLessonId])
+  @@index([classId])
 }
 
 // 수업 요일 enum
@@ -156,6 +174,7 @@ model Teacher {
   students  Student[]
   managerId Int?
   manager   Manager?  @relation(fields: [managerId], references: [id])
+  class     Class[]
 
   @@index([userId])
   @@index([managerId])
@@ -210,12 +229,25 @@ model Mission {
   student     Student       @relation(fields: [studentId], references: [id])
   studentId   Int
   description String
+  goals       Goal[]
   status      MissionStatus
   startDate   DateTime
   endDate     DateTime
   worksheets  Worksheet[]
 
   @@index([studentId])
+}
+
+// 학습목표에 포함된 Goals 테이블
+model Goal {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  mission   Mission  @relation(fields: [missionId], references: [id])
+  missionId Int
+  goal      String
+
+  @@index([missionId])
 }
 
 // 학습목표 상태 테이블
@@ -289,4 +321,34 @@ model WorksheetTrack {
   @@id([worksheetId, trackId])
   @@index([worksheetId])
   @@index([trackId])
+}
+
+// 학생들이 속한 클래스 테이블
+// student 와 다대다 관계 --> studentClass 테이블을 만들어서 표현
+// teacher와 1대다 관계
+model Class {
+  id           Int            @id @default(autoincrement())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  title        String
+  lessenDay    LessonDay[]
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+  teacherId    Int
+  studentClass StudentClass[]
+
+  @@index([teacherId])
+}
+
+// 학생과 클래스의 다대다 관계를 표현하는 테이블
+model StudentClass {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  class     Class    @relation(fields: [classId], references: [id])
+  classId   Int
+
+  @@id([studentId, classId])
+  @@index([studentId])
+  @@index([classId])
 }
