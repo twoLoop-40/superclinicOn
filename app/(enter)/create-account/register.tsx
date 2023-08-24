@@ -5,7 +5,8 @@ import ShowError from "@components/showError";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
-import { User } from "@prisma/client";
+import { Role, User } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 type RegitsterItems = {
@@ -13,18 +14,31 @@ type RegitsterItems = {
   email: string;
   password: string;
 };
-
-const RegisterForm = () => {
+type RegisterFormProps = {
+  role: string;
+};
+const RegisterForm = ({ role }: RegisterFormProps) => {
+  const router = useRouter();
   const {
     reset,
     register,
     handleSubmit,
-    formState: { errors },
+    setError,
+    formState: { errors, isDirty },
   } = useForm<User>();
+
   const onRegisterFormSubmit = async (data: User) => {
+    data.role = role as Role;
     const response = await registerClient(data);
-    console.log({ response });
-    reset();
+    const { ok, error } = response;
+    if (!ok) {
+      console.log(error);
+      reset();
+      setError("root", { message: "이미 존재하는 이메일입니다." });
+    } else {
+      reset();
+      router.push("/login");
+    }
   };
   return (
     <div>
@@ -39,6 +53,7 @@ const RegisterForm = () => {
           <Input
             className='w-full'
             {...register("email", { required: "*required" })}
+            type='email'
           />
           {errors && errors.email?.message && (
             <ShowError message={errors.email.message} />
@@ -64,12 +79,15 @@ const RegisterForm = () => {
           <Input
             className='w-full'
             {...register("username", { required: "*required" })}
+            type='text'
           />
           {errors && errors.username?.message && (
             <ShowError message={errors.username.message} />
           )}
         </div>
-
+        {!isDirty && errors && errors.root?.message && (
+          <ShowError message={errors.root?.message} />
+        )}
         <div className='w-full'>
           <Button className='bg-indigo-500 w-full' size='lg'>
             Register

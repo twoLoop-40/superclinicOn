@@ -6,14 +6,20 @@ const LoginPage = () => {
     <div className='sm:shadow-xl px-8 pb-8 pt-12 sm:bg-white rounded-xl space-y-12'>
       <h1 className='font-semibold text-2xl'>로그인</h1>
       <LoginForm />
-      <p className='text-center'>
-        계정이 없다면{" "}
+      <p className=' flex justify-between'>
+        <span>회원 가입 &rarr;</span>
         <Link
           className='text-indigo-500 hover:underline'
-          href='/create-account'
+          href='/create-account/TEACHER'
         >
-          새 계정 만들기
-        </Link>{" "}
+          선생님 회원
+        </Link>
+        <Link
+          className='text-indigo-500 hover:underline'
+          href='/create-account/STUDENT'
+        >
+          학생 회원
+        </Link>
       </p>
     </div>
   );

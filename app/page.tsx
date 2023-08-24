@@ -1,16 +1,14 @@
 import { authOptions } from "@api/auth/[...nextauth]/route";
-import { User } from "@components/user";
+import { optionalExcute } from "@lib/excuteFromCondition";
+import { Role, User } from "@prisma/client";
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
-  return (
-    <main className=''>
-      <h1 className=''>Welcome to Next.js!</h1>
-      <div>Server Session</div>
-      <pre>{JSON.stringify(session)}</pre>
-      <div>Client Session</div>
-      <User />
-    </main>
-  );
+  const user = session?.user as User;
+  return optionalExcute(
+    () => redirect("/student"),
+    () => redirect("/teacher")
+  )(user?.role === Role.STUDENT)();
 }

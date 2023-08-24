@@ -48,21 +48,47 @@ enum Role {
 
 // student 테이블
 model Student {
-  id            Int            @id @default(autoincrement())
-  userId        Int            @unique
-  user          User           @relation(fields: [userId], references: [id])
-  teacher       Teacher?       @relation(fields: [teacherId], references: [id])
-  teacherId     Int?
-  mataCode      Int?           @unique
-  worksheets    Worksheet[]
-  missions      Mission[]
-  evaluations   Evaluation[]
-  onLineLessons OnLineLesson[]
-  offLineLesson OffLineLesson?
-  studentClass  StudentClass[]
+  id             Int              @id @default(autoincrement())
+  userId         Int              @unique
+  user           User             @relation(fields: [userId], references: [id])
+  mataCode       Int?             @unique
+  missions       Mission[]
+  onLineLessons  OnLineLesson[]
+  offLineLesson  OffLineLesson?
+  studentClass   StudentClass[]
+  StudentComment StudentComment[]
+  StudentTeacher StudentTeacher[]
 
   @@index([userId])
+}
+
+// 학생과 선생님이 M:N 관계를 가지는 테이블
+model StudentTeacher {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  teacherId Int
+
+  @@index([studentId])
   @@index([teacherId])
+}
+
+// 학생이 선생님에게 남기는 코멘트 테이블
+model StudentComment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  mission   Mission  @relation(fields: [missionId], references: [id])
+  missionId Int
+  comment   String
+
+  @@index([studentId])
+  @@index([missionId])
 }
 
 // onLineLesson 테이블 (온라인 수업)
@@ -125,7 +151,7 @@ model OffLineLesson {
   count      Int          @default(0)
   total      Int          @default(0)
   lessonDay  LessonDay[]
-  LessonDate LessonDate[]
+  lessonDate LessonDate[]
 
   @@index([studentId])
 }
@@ -168,13 +194,14 @@ enum Day {
 
 // teacher 테이블
 model Teacher {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @unique
-  user      User      @relation(fields: [userId], references: [id])
-  students  Student[]
-  managerId Int?
-  manager   Manager?  @relation(fields: [managerId], references: [id])
-  class     Class[]
+  id             Int              @id @default(autoincrement())
+  userId         Int              @unique
+  user           User             @relation(fields: [userId], references: [id])
+  managerId      Int?
+  manager        Manager?         @relation(fields: [managerId], references: [id])
+  class          Class[]
+  missions       Mission[]
+  StudentTeacher StudentTeacher[]
 
   @@index([userId])
   @@index([managerId])
@@ -196,8 +223,6 @@ model Worksheet {
   WorksheetCode   Int
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  student         Student          @relation(fields: [studentId], references: [id])
-  studentId       Int
   mission         Mission?         @relation(fields: [missionId], references: [id])
   missionId       Int
   type            WorksheetType    @default(HOMEWORK)
@@ -205,7 +230,6 @@ model Worksheet {
   score           Int?
   WorksheetTracks WorksheetTrack[]
 
-  @@index([studentId])
   @@index([missionId])
 }
 
@@ -221,21 +245,51 @@ enum WorksheetStatus {
   GRADED // 채점 완료
 }
 
+// 학습 목표에 들어갈 비디오 테이블
+model Video {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String
+  url       String
+  duration  Int
+  mission   Mission  @relation(fields: [missionId], references: [id])
+  missionId Int
+
+  @@index([missionId])
+}
+
 // 학습목표 테이블
 model Mission {
-  id          Int           @id @default(autoincrement())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  student     Student       @relation(fields: [studentId], references: [id])
-  studentId   Int
-  description String
-  goals       Goal[]
-  status      MissionStatus
-  startDate   DateTime
-  endDate     DateTime
-  worksheets  Worksheet[]
+  id             Int              @id @default(autoincrement())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  student        Student?         @relation(fields: [studentId], references: [id])
+  studentId      Int?
+  class          Class?           @relation(fields: [classId], references: [id])
+  classId        Int?
+  teacher        Teacher          @relation(fields: [teacherId], references: [id])
+  teacherId      Int
+  description    String
+  goals          Goal[]
+  status         MissionStatus
+  startDate      DateTime
+  endDate        DateTime
+  worksheets     Worksheet[]
+  missionType    MissionType      @default(INDIVIDUAL)
+  videos         Video[]
+  Evaluation     Evaluation[]
+  StudentComment StudentComment[]
 
   @@index([studentId])
+  @@index([classId])
+  @@index([teacherId])
+}
+
+// mission 타입 
+enum MissionType {
+  INDIVIDUAL
+  GROUP
 }
 
 // 학습목표에 포함된 Goals 테이블
@@ -259,16 +313,17 @@ enum MissionStatus {
   ABANDONED
 }
 
-// 학생 평가 테이블
+// 학생 평가 테이블 mission이 얼마나 잘 되었는지 평가
 model Evaluation {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  student   Student  @relation(fields: [studentId], references: [id])
-  studentId Int
-  comment   String
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  mission        Mission  @relation(fields: [missionId], references: [id])
+  missionId      Int
+  teacherComment String
+  AIComment      String
 
-  @@index([studentId])
+  @@index([missionId])
 }
 
 // series 테이블
@@ -290,7 +345,7 @@ model Chapter {
   seriesId  Int
   series    Series   @relation(fields: [seriesId], references: [id])
   setName   String
-  setCode   Int      @unique
+  setCode   Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Track     Track[]
@@ -335,6 +390,7 @@ model Class {
   teacher      Teacher        @relation(fields: [teacherId], references: [id])
   teacherId    Int
   studentClass StudentClass[]
+  Mission      Mission[]
 
   @@index([teacherId])
 }

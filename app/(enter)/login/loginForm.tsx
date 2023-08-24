@@ -1,25 +1,47 @@
 "use client";
 
-import { loginClient } from "@actions/loginClient";
 import ShowError from "@components/showError";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
+import { optionalExcute } from "@lib/excuteFromCondition";
 import { User } from "@prisma/client";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+type ValidKeys = "email" | "password";
+
 const LoginForm = () => {
+  const router = useRouter();
   const {
     reset,
+    setError,
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<User>();
+    formState: { errors, isDirty },
+  } = useForm<User>({ mode: "onChange" });
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
   const onLoginFormSubmit = async (data: User) => {
-    const response = await loginClient(data);
-    console.log({ response });
-    reset();
+    const { email, password } = data;
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+      callbackUrl,
+    });
+    const executer = optionalExcute(
+      () => {
+        reset();
+        setError("root", { message: "로그인에 실패했습니다." });
+      },
+      () => router.push(callbackUrl)
+    );
+    executer(Boolean(res?.error))();
   };
+
+  console.log(isDirty);
   return (
     <div>
       <form
@@ -48,11 +70,13 @@ const LoginForm = () => {
             {...register("password", { required: "*required" })}
             type='password'
           />
-          {errors && errors?.password?.message && (
+          {!isDirty && errors && errors?.password?.message && (
             <ShowError message={errors?.password?.message} />
           )}
         </div>
-
+        {!isDirty && errors && errors.root?.message && (
+          <ShowError message={errors.root.message} />
+        )}
         <div className='w-full'>
           <Button className='bg-indigo-500 w-full' size='lg'>
             로그인
