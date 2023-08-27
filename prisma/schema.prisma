@@ -52,6 +52,8 @@ model Student {
   userId         Int              @unique
   user           User             @relation(fields: [userId], references: [id])
   mataCode       Int?             @unique
+  phone          String?
+  parentPhone    String?
   missions       Mission[]
   onLineLessons  OnLineLesson[]
   offLineLesson  OffLineLesson?
@@ -199,6 +201,7 @@ model Teacher {
   user           User             @relation(fields: [userId], references: [id])
   managerId      Int?
   manager        Manager?         @relation(fields: [managerId], references: [id])
+  phone          String?
   class          Class[]
   missions       Mission[]
   StudentTeacher StudentTeacher[]
