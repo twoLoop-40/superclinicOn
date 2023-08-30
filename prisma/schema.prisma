@@ -48,18 +48,18 @@ enum Role {
 
 // student 테이블
 model Student {
-  id             Int              @id @default(autoincrement())
-  userId         Int              @unique
-  user           User             @relation(fields: [userId], references: [id])
-  mataCode       Int?             @unique
-  phone          String?
-  parentPhone    String?
-  missions       Mission[]
-  onLineLessons  OnLineLesson[]
-  offLineLesson  OffLineLesson?
-  studentClass   StudentClass[]
-  StudentComment StudentComment[]
-  StudentTeacher StudentTeacher[]
+  id              Int              @id @default(autoincrement())
+  userId          Int              @unique
+  user            User             @relation(fields: [userId], references: [id])
+  mataCode        Int?             @unique
+  phone           String?
+  parentPhone     String?
+  missions        Mission[]
+  onLineLessons   OnLineLesson[]
+  offLineLesson   OffLineLesson?
+  studentClasses  StudentClass[]
+  studentComments StudentComment[]
+  studentTeachers StudentTeacher[]
 
   @@index([userId])
 }

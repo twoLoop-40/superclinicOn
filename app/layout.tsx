@@ -14,8 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang='ko'>
-      <body className='flex flex-col items-center'>
-        <Providers>{children}</Providers>
+      <body className='min-h-screen bg-background'>
+        <div className='flex flex-col relative min-h-screen'>{children}</div>
       </body>
     </html>
   );

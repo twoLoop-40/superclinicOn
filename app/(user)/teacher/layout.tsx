@@ -11,14 +11,14 @@ const UserLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <div className='w-full flex flex-col'>
       <div className='border-b'>
-        <div className='flex h-10 items-center px-4'>
+        <div className='flex h-12 container'>
           <MainNav className='mx-4' />
           <div className='ml-auto flex items-center space-x-4'>
             <UserNav email={email} username={username} />
           </div>
         </div>
       </div>
-      <div>{children}</div>
+      <div className='container relative'>{children}</div>
     </div>
   );
 };
