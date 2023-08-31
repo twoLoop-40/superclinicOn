@@ -2,14 +2,14 @@ import { authOptions } from "@api/auth/[...nextauth]/route";
 import { prisma } from "@lib/prisma";
 import { SessionUser } from "@lib/types";
 import { getServerSession } from "next-auth";
-import StudentsTable from "./studentsTable";
+import StudentsTable from "./students-table";
 import { StudentTableColumn, columns } from "./columns";
 import combinePropertyExtractors from "@lib/combineExtractors";
 
 const extractStudentDetails = combinePropertyExtractors([
   ({ user }) => ({ username: user.username }),
   ({ user }) => ({ email: user.email }),
-  ({ matacode }) => ({ matacode }),
+  ({ mataCode }) => ({ mataCode }),
   ({ phone }) => ({ phone }),
   ({ parentPhone }) => ({ parentPhone }),
 ]);
@@ -60,7 +60,7 @@ const StudentsPage = async () => {
     }) as StudentTableColumn[];
 
     return (
-      <div className='flex flex-col px-4 py-2 container'>
+      <div className='flex flex-col px-4 py-2'>
         <StudentsTable
           teacherId={teacherId}
           data={studentTableObject}
@@ -70,7 +70,7 @@ const StudentsPage = async () => {
     );
   } else {
     return (
-      <div className='flex flex-col px-4 py-2 container'>
+      <div className='flex flex-col px-4 py-2'>
         <h1 className='text-2xl font-bold'>Students</h1>
         <p className='text-red-500'>{error as string}</p>
       </div>

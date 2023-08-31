@@ -44,7 +44,7 @@ export const columns: ColumnDef<StudentTableColumn>[] = [
     header: "이메일",
   },
   {
-    accessorKey: "matacode",
+    accessorKey: "mataCode",
     header: "마타코드",
   },
   {

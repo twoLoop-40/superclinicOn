@@ -36,7 +36,7 @@ const TeacherPage = async () => {
   console.log({ missions });
 
   return (
-    <div className='flex flex-col items-center py-4 '>
+    <div className='flex flex-col  py-4 '>
       <h1>선생님 메인 페이지</h1>
       <div>Missions: {ok ? missions?.length : error}</div>
     </div>

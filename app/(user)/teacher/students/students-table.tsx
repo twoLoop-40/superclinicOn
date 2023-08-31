@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
-import { Student, User } from "@prisma/client";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -21,6 +20,7 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import StudentSheet from "../components/student-sheet";
+import GoMission from "../components/go-mission";
 
 interface StudentsTableProps<TableData, TableValue> {
   columns: ColumnDef<TableData, TableValue>[];
@@ -34,7 +34,7 @@ const StudentsTable = <TableData, TableValue>({
   teacherId,
 }: StudentsTableProps<TableData, TableValue>) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [rowSelection, setRowSelection] = useState({});
+  const [rowSelection, setRowSelection] = useState<Record<string, any>>({});
   const table = useReactTable({
     data,
     columns,
@@ -47,6 +47,13 @@ const StudentsTable = <TableData, TableValue>({
       rowSelection,
     },
   });
+  const getSelectedOriginalEmails = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    return selectedRows.map((row) => {
+      const originalData = row.original as TableData & { email: string };
+      return originalData.email;
+    });
+  };
   return (
     <div>
       <div className='flex items-center py-4'>
@@ -60,7 +67,13 @@ const StudentsTable = <TableData, TableValue>({
           }
           className='max-w-xs'
         />
-        <StudentSheet teacherId={teacherId} />
+        <div className='ml-auto space-x-2'>
+          <GoMission
+            studentEmails={getSelectedOriginalEmails()}
+            teacherId={teacherId}
+          />
+          <StudentSheet teacherId={teacherId} />
+        </div>
       </div>
       <div className='rounded-md border'>
         <Table>

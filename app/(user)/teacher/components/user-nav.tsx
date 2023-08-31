@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
 import {
@@ -10,18 +12,21 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
+import { signOut } from "next-auth/react";
 
 type UserNavProps = {
   email: string;
   username: string;
 };
+
+const getFirstChar = (str: string) => str.charAt(0).toUpperCase();
 export const UserNav = ({ email, username }: UserNavProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant={"ghost"} className='relative h-8 w-8 rounded-full'>
           <Avatar className='h-8 w-8'>
-            <AvatarFallback>SC</AvatarFallback>
+            <AvatarFallback>{getFirstChar(username)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -51,8 +56,8 @@ export const UserNav = ({ email, username }: UserNavProps) => {
           <DropdownMenuItem>New Team</DropdownMenuItem>
         </DropdownMenuGroup> */}
         {/* <DropdownMenuSeparator /> */}
-        <DropdownMenuItem>
-          Log out
+        <DropdownMenuItem onClick={() => signOut()}>
+          로그아웃
           {/* <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut> */}
         </DropdownMenuItem>
       </DropdownMenuContent>

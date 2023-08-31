@@ -19,6 +19,9 @@ type CreateStudentFormType = {
   username: string;
   email: string;
   password: string;
+  phone?: string;
+  parentPhone?: string;
+  mataCode?: string;
 };
 
 type Predicate = (arg: any) => boolean;
@@ -40,8 +43,16 @@ const StudentSheet = ({ teacherId }: StudentSheetProps) => {
     formState: { errors },
   } = useForm<CreateStudentFormType>();
   const onStudentSubmit = async (data: CreateStudentFormType) => {
-    const { username, email, password } = data;
-    await createStudentByTeacher({ teacherId, username, email, password });
+    const { username, email, password, parentPhone, phone, mataCode } = data;
+    await createStudentByTeacher({
+      teacherId,
+      username,
+      email,
+      password,
+      parentPhone,
+      phone,
+      mataCode,
+    });
     reset();
   };
   return (
@@ -58,31 +69,66 @@ const StudentSheet = ({ teacherId }: StudentSheetProps) => {
         </SheetHeader>
         <form onSubmit={handleSubmit(onStudentSubmit)}>
           <div className='grid gap-4 py-4'>
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='username'>이름 :</Label>
+            <div className='flex flex-col gap-2'>
+              <Label className='font-bold' htmlFor='username'>
+                이름
+              </Label>
               <Input
-                className='col-span-3'
+                className=' ml-auto'
                 type='text'
                 {...register("username", { required: true })}
               />
             </div>
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='email'>이메일 :</Label>
+            <div className='flex flex-col gap-2'>
+              <Label className='font-bold' htmlFor='email'>
+                이메일
+              </Label>
               <Input
-                className='col-span-3'
+                className=' ml-auto'
                 type='email'
                 {...register("email", { required: true })}
               />
             </div>
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='email'>패스워드 :</Label>
+            <div className='flex flex-col gap-2'>
+              <Label className='font-bold' htmlFor='email'>
+                패스워드
+              </Label>
               <Input
-                className='col-span-3'
+                className=''
                 type='password'
                 {...register("password", { required: true })}
               />
             </div>
+            <div className='flex flex-col gap-2'>
+              <Label className='font-bold' htmlFor='mataCode'>
+                마타코드
+              </Label>
+              <Input className='' type='text' {...register("mataCode")} />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label className='font-bold' htmlFor='email'>
+                전화번호
+              </Label>
+              <Input
+                className=''
+                type='text'
+                {...register("phone")}
+                placeholder='번호만 적어주세요...'
+              />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label className='font-bold' htmlFor='email'>
+                부모님번호
+              </Label>
+              <Input
+                className=''
+                type='text'
+                {...register("parentPhone")}
+                placeholder='번호만 적어주세요...'
+              />
+            </div>
           </div>
+
           <Button
             className='flex ml-auto'
             type='submit'

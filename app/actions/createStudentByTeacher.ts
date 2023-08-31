@@ -10,6 +10,9 @@ type CredentialProps = {
   username: string;
   password: string;
   teacherId: number;
+  phone?: string;
+  parentPhone?: string;
+  mataCode?: string;
 };
 
 const createStudentByTeacher = ({
@@ -17,6 +20,9 @@ const createStudentByTeacher = ({
   username,
   password,
   teacherId,
+  phone,
+  parentPhone,
+  mataCode,
 }: CredentialProps) => {
   const chain = chainPrismaOps(
     async () => {
@@ -35,12 +41,15 @@ const createStudentByTeacher = ({
       const student = await prisma.student.create({
         data: {
           userId: user.id,
+          phone: phone as string,
+          parentPhone: parentPhone as string,
+          mataCode: mataCode as string,
         },
       });
       return student;
     },
     async (student) => {
-      const studentTeacher = await prisma.studentTeacher.create({
+      await prisma.studentTeacher.create({
         data: {
           studentId: student.id,
           teacherId,

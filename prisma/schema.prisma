@@ -50,8 +50,8 @@ enum Role {
 model Student {
   id              Int              @id @default(autoincrement())
   userId          Int              @unique
-  user            User             @relation(fields: [userId], references: [id])
-  mataCode        Int?             @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mataCode        String?          @unique
   phone           String?
   parentPhone     String?
   missions        Mission[]
@@ -69,9 +69,9 @@ model StudentTeacher {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  student   Student  @relation(fields: [studentId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentId Int
-  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   teacherId Int
 
   @@index([studentId])
@@ -198,7 +198,7 @@ enum Day {
 model Teacher {
   id             Int              @id @default(autoincrement())
   userId         Int              @unique
-  user           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   managerId      Int?
   manager        Manager?         @relation(fields: [managerId], references: [id])
   phone          String?
@@ -223,7 +223,7 @@ model Manager {
 // student가 본 Worksheets 테이블
 model Worksheet {
   id              Int              @id @default(autoincrement())
-  WorksheetCode   Int
+  worksheetCode   Int?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   mission         Mission?         @relation(fields: [missionId], references: [id])
@@ -231,7 +231,8 @@ model Worksheet {
   type            WorksheetType    @default(HOMEWORK)
   status          WorksheetStatus  @default(PENDING)
   score           Int?
-  WorksheetTracks WorksheetTrack[]
+  worksheetTracks WorksheetTrack[]
+  fileUrl         String?
 
   @@index([missionId])
 }
@@ -273,6 +274,7 @@ model Mission {
   classId        Int?
   teacher        Teacher          @relation(fields: [teacherId], references: [id])
   teacherId      Int
+  title          String
   description    String
   goals          Goal[]
   status         MissionStatus
@@ -281,8 +283,8 @@ model Mission {
   worksheets     Worksheet[]
   missionType    MissionType      @default(INDIVIDUAL)
   videos         Video[]
-  Evaluation     Evaluation[]
-  StudentComment StudentComment[]
+  evaluation     Evaluation[]
+  studentComment StudentComment[]
 
   @@index([studentId])
   @@index([classId])
