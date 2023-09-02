@@ -54,6 +54,7 @@ model Student {
   mataCode        String?          @unique
   phone           String?
   parentPhone     String?
+  points          Int              @default(0)
   missions        Mission[]
   onLineLessons   OnLineLesson[]
   offLineLesson   OffLineLesson?
@@ -202,6 +203,7 @@ model Teacher {
   managerId      Int?
   manager        Manager?         @relation(fields: [managerId], references: [id])
   phone          String?
+  points         Int              @default(0)
   class          Class[]
   missions       Mission[]
   StudentTeacher StudentTeacher[]

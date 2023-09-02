@@ -1,3 +1,5 @@
+import MissionForm from "@(user)/teacher/components/mission-form";
+
 const CreateMissionPage = async ({
   params,
   searchParams,
@@ -11,8 +13,8 @@ const CreateMissionPage = async ({
     console.log(studentEmailsArray);
   }
   return (
-    <div>
-      <h1>Create Mission Page</h1>
+    <div className='overflow-hidden rounded-lg border bg-background shadow p-4'>
+      <MissionForm />
     </div>
   );
 };

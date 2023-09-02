@@ -10,7 +10,7 @@ const UserLayout = async ({ children }: { children: React.ReactNode }) => {
   const { email, id, role, username } = session?.user as SessionUser;
 
   return (
-    <div className='w-full flex flex-col'>
+    <div className='w-full flex flex-col space-y-4'>
       <div className='border-b'>
         <div className='flex h-12 container items-center'>
           <GoBack className='text-gray-700 mr-3' />

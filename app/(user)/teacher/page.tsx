@@ -33,10 +33,10 @@ const TeacherPage = async () => {
   const { email, id, role, username } = session?.user as SessionUser;
   const response = await getMissions({ id });
   const { ok, missions, error } = response;
-  console.log({ missions });
+  // console.log({ missions });
 
   return (
-    <div className='flex flex-col  py-4 '>
+    <div className='flex flex-col py-4'>
       <h1>선생님 메인 페이지</h1>
       <div>Missions: {ok ? missions?.length : error}</div>
     </div>

@@ -27,6 +27,12 @@
       /* "@/*": ["./*"]  예전 경로 설정*/
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/(user)/teacher/[teacherId]/create"
+  ],
   "exclude": ["node_modules"]
 }
