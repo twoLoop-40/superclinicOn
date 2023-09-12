@@ -22,6 +22,16 @@ import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 import { cn } from "@lib/utils";
 import { Label } from "@components/ui/label";
 import { Input } from "@components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
+import { WorksheetType } from "@prisma/client";
 
 type WorkSheetFormProps = {
   register: UseFormRegister<MissionFormValues>;
@@ -29,26 +39,40 @@ type WorkSheetFormProps = {
   errors: FieldErrors<MissionFormValues>;
   setValue: UseFormSetValue<MissionFormValues>;
   getValues: UseFormGetValues<MissionFormValues>;
+  classNames?: string;
+};
+
+type MovieCheck = boolean;
+type ArrCheckType = <T>(proc: (arr: T[]) => T[]) => (prev: T[]) => T[];
+
+const updateArray: ArrCheckType = (proc) => {
+  return (prev) => {
+    const current = [...prev];
+    return proc(current);
+  };
 };
 
 const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
+  classNames,
   register,
   control,
   errors,
   setValue,
   getValues,
 }) => {
+  const [movieCheck, setMovieCheck] = useState<MovieCheck[]>([]);
+  const [worksheetTypes, setWorksheetTypes] = useState<WorksheetType[]>([]);
   const { remove, append, fields } = useFieldArray({
     name: "worksheets",
     control,
   });
-
   return (
-    <Card className='max-w-lg'>
+    <Card className={cn(classNames)}>
       <CardHeader>
-        <CardTitle>파일 업로드</CardTitle>
+        <CardTitle>콘텐츠</CardTitle>
         <CardDescription>
-          이번 미션에 해당하는 PDF 파일과 파일 이름 또는 코드를 업로드하세요.
+          학생이 원하는 콘텐츠를 입력하세요. 콘텐츠 설명에 대한 내용을 입력하지
+          않으면 파일 명으로 대체됩니다.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -57,13 +81,45 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
             <div key={field.id} className='flex flex-col space-y-2'>
               <Label className='font-bold ml-1'>업로드{` ${index + 1}`}</Label>
               <div className='flex space-x-4 items-center'>
-                <Input
-                  className='min-w-12 max-w-[64px]'
-                  placeholder='타입'
-                  {...register(
-                    `worksheets.${index}.worksheet.fileCode` as const
-                  )}
-                />
+                <Select
+                  {...(register(`worksheets.${index}.worksheet.type`),
+                  {
+                    onValueChange: (value) => {
+                      setValue(
+                        `worksheets.${index}.worksheet.type`,
+                        value as WorksheetType
+                      );
+                      setWorksheetTypes((prev) => {
+                        return updateArray<WorksheetType>((current) => {
+                          current[index] = value as WorksheetType;
+                          return current;
+                        })(prev);
+                      });
+                    },
+                  })}
+                >
+                  <SelectTrigger className='min-w-12 max-w-[80px]'>
+                    <SelectValue>
+                      {!worksheetTypes[index]
+                        ? "타입"
+                        : worksheetTypes[index] === WorksheetType.HOMEWORK
+                        ? "과제"
+                        : "수업"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>타입</SelectLabel>
+                      <SelectItem value={WorksheetType.HOMEWORK}>
+                        과제
+                      </SelectItem>
+                      <SelectItem value={WorksheetType.CLASSWORK}>
+                        수업
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
                 <Input
                   className='min-w-12 max-w-[64px]'
                   placeholder='코드'
@@ -74,7 +130,7 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
 
                 <Input
                   className=''
-                  placeholder='파일이름'
+                  placeholder='콘텐츠 대한 설명이나 파일 이름'
                   {...register(
                     `worksheets.${index}.worksheet.fileName` as const,
                     {
@@ -85,16 +141,14 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
                 <Label className='w-24 h-10 flex items-center justify-center hover:bg-gray-200 rounded-md border border-gray-300  px-3 py-1 cursor-pointer'>
                   <Input
                     type='file'
-                    accept='application/pdf'
+                    // pdf파일, 이미지 파일, 동영상 파일
+                    accept='.pdf, .jpg, .png'
                     className='hidden'
                     {...register(
                       `worksheets.${index}.worksheet.file` as const,
                       {
                         onChange: (e) => {
                           const file = e.target.files?.[0];
-                          const currentValues = getValues("worksheets");
-                          const currentFileName =
-                            currentValues[index].worksheet.fileName;
                           if (file) {
                             setValue(
                               `worksheets.${index}.worksheet.fileName`,
@@ -106,7 +160,41 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
                     )}
                   />
                   <span className='overflow-hidden overflow-ellipsis whitespace-nowrap'>
-                    업로드
+                    시험지
+                  </span>
+                </Label>
+                <Label className='w-24 h-10 flex items-center justify-center hover:bg-gray-200 rounded-md border border-gray-300  px-3 py-1 cursor-pointer'>
+                  <Input
+                    type='file'
+                    // 동영상 파일
+                    accept='.mp4'
+                    className='hidden'
+                    {...register(
+                      `worksheets.${index}.worksheet.video` as const,
+                      {
+                        onChange: (e) => {
+                          const movieFile = e.target.files?.[0];
+                          if (movieFile) {
+                            setMovieCheck((prev) => {
+                              return updateArray<MovieCheck>((current) => {
+                                current[index] = true;
+                                return current;
+                              })(prev);
+                            });
+                          } else {
+                            setMovieCheck((prev) => {
+                              return updateArray<MovieCheck>((current) => {
+                                current[index] = false;
+                                return current;
+                              })(prev);
+                            });
+                          }
+                        },
+                      }
+                    )}
+                  />
+                  <span className='overflow-hidden overflow-ellipsis whitespace-nowrap'>
+                    {movieCheck[index] ? "동영상" : "영상없음"}
                   </span>
                 </Label>
                 <div className='flex'>
@@ -114,7 +202,25 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
                     onClick={(e) => {
                       e.preventDefault();
                       append({
-                        worksheet: { fileCode: "", fileName: "", file: null },
+                        worksheet: {
+                          fileCode: "",
+                          fileName: "",
+                          file: null,
+                          type: WorksheetType.HOMEWORK,
+                          video: null,
+                        },
+                      });
+                      setMovieCheck((prev) => {
+                        return updateArray<MovieCheck>((current) => {
+                          current.splice(index + 1, 0, false);
+                          return current;
+                        })(prev);
+                      });
+                      setWorksheetTypes((prev) => {
+                        return updateArray<WorksheetType>((current) => {
+                          current.splice(index + 1, 0);
+                          return current;
+                        })(prev);
                       });
                     }}
                     className=' h-8 w-8 hover:text-gray-500 transition-colors'
@@ -123,6 +229,18 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
                     onClick={(e) => {
                       e.preventDefault();
                       remove(index);
+                      setMovieCheck((prev) => {
+                        return updateArray<MovieCheck>((current) => {
+                          current.splice(index, 1);
+                          return current;
+                        })(prev);
+                      });
+                      setWorksheetTypes((prev) => {
+                        return updateArray<WorksheetType>((current) => {
+                          current.splice(index, 1);
+                          return current;
+                        })(prev);
+                      });
                     }}
                     className=' h-8 w-8 hover:text-gray-500 transition-colors'
                   />
@@ -142,7 +260,28 @@ const WorkSheetForm: React.FC<WorkSheetFormProps> = ({
           <PlusCircleIcon
             onClick={(e) => {
               e.preventDefault();
-              append({ worksheet: { fileCode: "", fileName: "", file: null } });
+              append({
+                worksheet: {
+                  fileCode: "",
+                  fileName: "",
+                  file: null,
+                  type: WorksheetType.HOMEWORK,
+                  video: null,
+                },
+              });
+
+              setMovieCheck((prev) => {
+                return updateArray<MovieCheck>((current) => {
+                  current.push(false);
+                  return current;
+                })(prev);
+              });
+              setWorksheetTypes((prev) => {
+                return updateArray<WorksheetType>((current) => {
+                  current.push();
+                  return current;
+                })(prev);
+              });
             }}
             className='h-8 w-8 hover:text-gray-500 transition-colors'
           />

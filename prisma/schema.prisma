@@ -24,17 +24,20 @@ model User {
   student   Student?
   teacher   Teacher?
   manager   Manager?
-  Token     Token[]
+  token     Token[]
 }
 
 // email 확인을 위한 토큰
 model Token {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  token     String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
+  id                 Int       @id @default(autoincrement())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  emailToken         String? // 이메일 확인을 위한 토큰
+  googleAccessToken  String? // Google access_token
+  googleRefreshToken String? // Google refresh_token
+  googleTokenExpiry  DateTime? // Google token 만료 시간
+  user               User      @relation(fields: [userId], references: [id])
+  userId             Int
 
   @@index([userId])
 }
@@ -228,13 +231,15 @@ model Worksheet {
   worksheetCode   Int?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  mission         Mission?         @relation(fields: [missionId], references: [id])
+  mission         Mission?         @relation(fields: [missionId], references: [id], onDelete: Cascade)
   missionId       Int
   type            WorksheetType    @default(HOMEWORK)
   status          WorksheetStatus  @default(PENDING)
   score           Int?
   worksheetTracks WorksheetTrack[]
+  title           String? // worksheet 의 내용을 설명하는 제목
   fileUrl         String?
+  video           Video[]
 
   @@index([missionId])
 }
@@ -253,16 +258,16 @@ enum WorksheetStatus {
 
 // 학습 목표에 들어갈 비디오 테이블
 model Video {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  url       String
-  duration  Int
-  mission   Mission  @relation(fields: [missionId], references: [id])
-  missionId Int
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  title       String
+  url         String
+  duration    Int
+  worksheet   Worksheet @relation(fields: [worksheetId], references: [id])
+  worksheetId Int
 
-  @@index([missionId])
+  @@index([worksheetId])
 }
 
 // 학습목표 테이블
@@ -276,15 +281,14 @@ model Mission {
   classId        Int?
   teacher        Teacher          @relation(fields: [teacherId], references: [id])
   teacherId      Int
-  title          String
-  description    String
+  title          String // AI가 생성
+  description    String // AI가 생성
   goals          Goal[]
   status         MissionStatus
   startDate      DateTime
   endDate        DateTime
   worksheets     Worksheet[]
   missionType    MissionType      @default(INDIVIDUAL)
-  videos         Video[]
   evaluation     Evaluation[]
   studentComment StudentComment[]
 

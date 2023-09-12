@@ -4,6 +4,12 @@ import { getServerSession } from "next-auth";
 import MainNav from "./components/main-nav";
 import UserNav from "./components/user-nav";
 import GoBack from "@components/go-back";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "선생님",
+  description: "선생님 메인 페이지",
+};
 
 const UserLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);

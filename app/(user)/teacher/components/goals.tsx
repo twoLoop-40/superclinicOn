@@ -34,7 +34,7 @@ const GoalsForm = ({ register, control, errors }: GoalsFormProps) => {
   return (
     <Card className='max-w-lg'>
       <CardHeader>
-        <CardTitle>미션 목표 설정</CardTitle>
+        <CardTitle>목표</CardTitle>
         <CardDescription>
           이번 미션에 해당하는 여러가지 목표를 설정하세요.
         </CardDescription>
